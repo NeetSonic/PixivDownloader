@@ -30,19 +30,22 @@
         {
             System.Windows.Forms.Label label1;
             System.Windows.Forms.Label label2;
+            System.Windows.Forms.Label label3;
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
+            this.txtProxy = new Neetsonic.Control.TextBox();
+            this.txtLog = new Neetsonic.Control.LogTextBox();
             this.txtSaveDir = new Neetsonic.Control.TextBox();
             this.txtIllustratorID = new Neetsonic.Control.TextBox();
-            this.txtLog = new Neetsonic.Control.LogTextBox();
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
+            label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(25, 55);
+            label1.Location = new System.Drawing.Point(25, 82);
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(52, 20);
             label1.TabIndex = 1;
@@ -57,6 +60,15 @@
             label2.TabIndex = 2;
             label2.Text = "存放目录";
             // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new System.Drawing.Point(12, 49);
+            label3.Name = "label3";
+            label3.Size = new System.Drawing.Size(65, 20);
+            label3.TabIndex = 7;
+            label3.Text = "访问代理";
+            // 
             // btnBrowse
             // 
             this.btnBrowse.Location = new System.Drawing.Point(309, 11);
@@ -69,13 +81,33 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(240, 50);
+            this.btnStart.Location = new System.Drawing.Point(240, 77);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(130, 29);
             this.btnStart.TabIndex = 5;
             this.btnStart.Text = "开始下载";
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.BtnStart_Click);
+            // 
+            // txtProxy
+            // 
+            this.txtProxy.Location = new System.Drawing.Point(83, 46);
+            this.txtProxy.Name = "txtProxy";
+            this.txtProxy.Size = new System.Drawing.Size(287, 26);
+            this.txtProxy.TabIndex = 8;
+            this.txtProxy.TextChanged += new System.EventHandler(this.TxtProxy_TextChanged);
+            // 
+            // txtLog
+            // 
+            this.txtLog.AcceptsReturn = true;
+            this.txtLog.AcceptsTab = true;
+            this.txtLog.Location = new System.Drawing.Point(16, 130);
+            this.txtLog.Multiline = true;
+            this.txtLog.Name = "txtLog";
+            this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.txtLog.Size = new System.Drawing.Size(354, 253);
+            this.txtLog.TabIndex = 6;
+            this.txtLog.WordWrap = false;
             // 
             // txtSaveDir
             // 
@@ -86,28 +118,18 @@
             // 
             // txtIllustratorID
             // 
-            this.txtIllustratorID.Location = new System.Drawing.Point(83, 52);
+            this.txtIllustratorID.Location = new System.Drawing.Point(83, 79);
             this.txtIllustratorID.Name = "txtIllustratorID";
             this.txtIllustratorID.Size = new System.Drawing.Size(138, 26);
             this.txtIllustratorID.TabIndex = 0;
-            // 
-            // txtLog
-            // 
-            this.txtLog.AcceptsReturn = true;
-            this.txtLog.AcceptsTab = true;
-            this.txtLog.Location = new System.Drawing.Point(16, 95);
-            this.txtLog.Multiline = true;
-            this.txtLog.Name = "txtLog";
-            this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtLog.Size = new System.Drawing.Size(354, 254);
-            this.txtLog.TabIndex = 6;
-            this.txtLog.WordWrap = false;
             // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 361);
+            this.ClientSize = new System.Drawing.Size(384, 395);
+            this.Controls.Add(this.txtProxy);
+            this.Controls.Add(label3);
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.btnBrowse);
@@ -135,6 +157,7 @@
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Button btnStart;
         private Neetsonic.Control.LogTextBox txtLog;
+        private Neetsonic.Control.TextBox txtProxy;
     }
 }
 

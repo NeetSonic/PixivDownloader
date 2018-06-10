@@ -11,6 +11,7 @@ namespace PixivDownloader.View
         {
             InitializeComponent();
         }
+
         private void BtnBrowse_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog
@@ -26,12 +27,17 @@ namespace PixivDownloader.View
         private async void BtnStart_Click(object sender, EventArgs e)
         {
             txtLog.Clear();
-            txtIllustratorID.Enabled = txtSaveDir.Enabled = btnBrowse.Enabled = btnStart.Enabled = false;
-            Downloader downloader = new Downloader(txtIllustratorID.Text, txtSaveDir.Text, Log);
+            txtIllustratorID.Enabled = txtSaveDir.Enabled = btnBrowse.Enabled = btnStart.Enabled = txtProxy.Enabled = false;
+            Downloader downloader = new Downloader(txtIllustratorID.Text, txtSaveDir.Text, txtProxy.Text, Log);
             await Task.Run((Action)downloader.Download);
-            txtIllustratorID.Enabled = txtSaveDir.Enabled = btnBrowse.Enabled = btnStart.Enabled = true;
+            txtIllustratorID.Enabled = txtSaveDir.Enabled = btnBrowse.Enabled = btnStart.Enabled = txtProxy.Enabled = true;
         }
-        private void FrmMain_Load(object sender, EventArgs e) => txtSaveDir.Text = Global.Config.StorePath;
+        private void FrmMain_Load(object sender, EventArgs e)
+        {
+            txtSaveDir.Text = Global.Config.StorePath;
+            txtProxy.Text = Global.Config.Proxy;
+        }
         private void Log(string msg) => BeginInvoke(new MethodInvoker(() => txtLog.WriteLog(msg)));
+        private void TxtProxy_TextChanged(object sender, EventArgs e) => Global.Config.Proxy = txtProxy.Text;
     }
 }
