@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Text;
 using HtmlAgilityPack;
+using Neetsonic.Tool;
 using Neetsonic.Tool.Extensions;
 using PixivDownloader.Model;
 
@@ -123,6 +124,7 @@ namespace PixivDownloader.Util
                 }
             }
             ReportMessage(@"下载任务完成！");
+            FileTool.OpenDirectory(dir);
         }
         private static string GetDateByURL(string url) => url.Substring(url.LastIndexOf(@"img", StringComparison.Ordinal) + 4, 10).Replace(@"/", string.Empty);
         private string GetURL(string illust_id)
