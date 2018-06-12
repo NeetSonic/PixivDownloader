@@ -37,6 +37,8 @@
             this.txtLog = new Neetsonic.Control.LogTextBox();
             this.txtSaveDir = new Neetsonic.Control.TextBox();
             this.txtIllustratorID = new Neetsonic.Control.TextBox();
+            this.chkDateAfter = new System.Windows.Forms.CheckBox();
+            this.dateAfter = new System.Windows.Forms.DateTimePicker();
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
@@ -101,11 +103,11 @@
             // 
             this.txtLog.AcceptsReturn = true;
             this.txtLog.AcceptsTab = true;
-            this.txtLog.Location = new System.Drawing.Point(16, 130);
+            this.txtLog.Location = new System.Drawing.Point(16, 147);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtLog.Size = new System.Drawing.Size(354, 253);
+            this.txtLog.Size = new System.Drawing.Size(354, 236);
             this.txtLog.TabIndex = 6;
             this.txtLog.WordWrap = false;
             // 
@@ -123,11 +125,33 @@
             this.txtIllustratorID.Size = new System.Drawing.Size(138, 26);
             this.txtIllustratorID.TabIndex = 0;
             // 
+            // chkDateAfter
+            // 
+            this.chkDateAfter.AutoSize = true;
+            this.chkDateAfter.Location = new System.Drawing.Point(16, 117);
+            this.chkDateAfter.Name = "chkDateAfter";
+            this.chkDateAfter.Size = new System.Drawing.Size(210, 24);
+            this.chkDateAfter.TabIndex = 9;
+            this.chkDateAfter.Text = "仅下载此时间之后上传的作品";
+            this.chkDateAfter.UseVisualStyleBackColor = true;
+            this.chkDateAfter.CheckedChanged += new System.EventHandler(this.ChkDateAfter_CheckedChanged);
+            // 
+            // dateAfter
+            // 
+            this.dateAfter.Enabled = false;
+            this.dateAfter.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dateAfter.Location = new System.Drawing.Point(240, 115);
+            this.dateAfter.Name = "dateAfter";
+            this.dateAfter.Size = new System.Drawing.Size(130, 26);
+            this.dateAfter.TabIndex = 10;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(384, 395);
+            this.Controls.Add(this.dateAfter);
+            this.Controls.Add(this.chkDateAfter);
             this.Controls.Add(this.txtProxy);
             this.Controls.Add(label3);
             this.Controls.Add(this.txtLog);
@@ -158,6 +182,8 @@
         private System.Windows.Forms.Button btnStart;
         private Neetsonic.Control.LogTextBox txtLog;
         private Neetsonic.Control.TextBox txtProxy;
+        private System.Windows.Forms.CheckBox chkDateAfter;
+        private System.Windows.Forms.DateTimePicker dateAfter;
     }
 }
 

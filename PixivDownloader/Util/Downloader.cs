@@ -13,11 +13,12 @@ namespace PixivDownloader.Util
 {
     public sealed class Downloader
     {
-        public Downloader(string illustrator_id, string saveDir, string proxy, Action<string> report)
+        public Downloader(string illustrator_id, string saveDir, string proxy, Action<string> report, DateTime dateAfter)
         {
             IllustratorID = illustrator_id;
             if(!string.IsNullOrWhiteSpace(proxy)) { ProxyObject = new WebProxy(proxy, true); }
             Report = report;
+            DateAfter = dateAfter;
             SaveDir = saveDir;
             MenuURL = string.Format($@"https://www.pixiv.net/member_illust.php?id={illustrator_id}");
         }
@@ -27,6 +28,7 @@ namespace PixivDownloader.Util
         private readonly string MenuURL;
         private readonly string SaveDir;
         private readonly Action<string> Report;
+        private readonly DateTime DateAfter;
 
         public void Download()
         {
@@ -37,6 +39,7 @@ namespace PixivDownloader.Util
             string illustrator = null;
             do
             {
+                bool skip = false;
                 page++;
                 ReportMessage(string.Format($@"正在获取第{page}页的作品..."));
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format($@"{MenuURL}&type=all&p={page}"));
@@ -61,20 +64,25 @@ namespace PixivDownloader.Util
                 int count = doc.DocumentNode.SelectNodes(@"//*[@id='wrapper']/div[1]/div[1]/div/div[2]/ul/li").Count;
                 for(int i = 1; i <= count; i++)
                 {
-                    HtmlNode nodeURL = doc.DocumentNode.SelectSingleNode(string.Format($@"//*[@id='wrapper']/div[1]/div[1]/div/div[2]/ul/li[{i}]/a[1]/div[1]/img"));
                     HtmlNode nodeName = doc.DocumentNode.SelectSingleNode(string.Format($@"//*[@id='wrapper']/div[1]/div[1]/div/div[2]/ul/li[{i}]/a[2]"));
                     string href = nodeName.Attributes[@"href"].Value;
                     string illust_id = href.Substring(href.LastIndexOf('=') + 1);
                     string url = GetURL(illust_id);
+                    string date = GetDateByURL(url);
+                    if(DateTime.Parse(date).Date < DateAfter.Date)
+                    {
+                        skip = true;
+                        break;
+                    }
                     illustrations.Add(new Illustration
                     {
                             ID = href.Substring(href.LastIndexOf('=') + 1),
                             Name = nodeName.ChildNodes[0].InnerText,
                             URL = url,
-                            Date = GetDateByURL(url)
+                            Date = date.Replace(@"/", string.Empty)
                     });
                 }
-                haveNext = doc.DocumentNode.SelectSingleNode(@"//*[@id='wrapper']/div[1]/div[1]/div/ul[1]/div/span[2]/a");
+                haveNext = skip ? null : doc.DocumentNode.SelectSingleNode(@"//*[@id='wrapper']/div[1]/div[1]/div/ul[1]/div/span[2]/a");
             }
             while(haveNext != null);
             string dir = Path.Combine(SaveDir, string.Format($@"{illustrator}_{IllustratorID}"));
@@ -126,7 +134,7 @@ namespace PixivDownloader.Util
             ReportMessage(@"下载任务完成！");
             FileTool.OpenDirectory(dir);
         }
-        private static string GetDateByURL(string url) => url.Substring(url.LastIndexOf(@"img", StringComparison.Ordinal) + 4, 10).Replace(@"/", string.Empty);
+        private static string GetDateByURL(string url) => url.Substring(url.LastIndexOf(@"img", StringComparison.Ordinal) + 4, 10);
         private string GetURL(string illust_id)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format($@"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={illust_id}"));
