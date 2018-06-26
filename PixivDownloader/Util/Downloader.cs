@@ -108,27 +108,41 @@ namespace PixivDownloader.Util
                             using(Stream reader = myResponse.GetResponseStream())
                             {
                                 string fileName = string.Format($@"{illust.ID}_p{i}_{illust.Name}_{illust.Date}{illust.FileFormat}");
+                                fileName = fileName.Replace('/', '／');
                                 string filePath = Path.Combine(dir, fileName);
                                 ReportMessage(string.Format($@"下载图片[{fileName}]..."));
-                                using(FileStream writer = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
+                                try
                                 {
-                                    byte[] buff = new byte[512];
-                                    int c;
-                                    while(reader != null && (c = reader.Read(buff, 0, buff.Length)) > 0)
+                                    using(FileStream writer = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
                                     {
-                                        writer.Write(buff, 0, c);
+                                        byte[] buff = new byte[512];
+                                        int c;
+                                        while(reader != null && (c = reader.Read(buff, 0, buff.Length)) > 0)
+                                        {
+                                            writer.Write(buff, 0, c);
+                                        }
+                                        writer.Close();
                                     }
-                                    writer.Close();
+                                }
+                                catch(DirectoryNotFoundException)
+                                {
+                                    using(FileStream writer = new FileStream(Path.Combine(dir, string.Format($@"{illust.ID}_p{i}_文件名不规范_{illust.Date}{illust.FileFormat}")), FileMode.OpenOrCreate, FileAccess.Write))
+                                    {
+                                        byte[] buff = new byte[512];
+                                        int c;
+                                        while(reader != null && (c = reader.Read(buff, 0, buff.Length)) > 0)
+                                        {
+                                            writer.Write(buff, 0, c);
+                                        }
+                                        writer.Close();
+                                    }
                                 }
                                 reader?.Close();
                             }
                         }
                         i++;
                     }
-                    catch(Exception)
-                    {
-                        break;
-                    }
+                    catch(Exception) { break; }
                 }
             }
             ReportMessage(@"下载任务完成！");
