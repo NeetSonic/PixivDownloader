@@ -85,9 +85,21 @@ namespace PixivDownloader.Util
                 haveNext = skip ? null : doc.DocumentNode.SelectSingleNode(@"//*[@id='wrapper']/div[1]/div[1]/div/ul[1]/div/span[2]/a");
             }
             while(haveNext != null);
-            string dir = Path.Combine(SaveDir, string.Format($@"{illustrator}_{IllustratorID}"));
-            ReportMessage(string.Format($@"创建存储目录[{dir}]..."));
-            Directory.CreateDirectory(dir);
+            string dir = null;
+            foreach(string directory in Directory.GetDirectories(SaveDir))
+            {
+                if(directory.EndsWith($@"_{IllustratorID}"))
+                {
+                    dir = directory;
+                    break;
+                }
+            }
+            if(null == dir)
+            {
+                dir = Path.Combine(SaveDir, string.Format($@"{illustrator}_{IllustratorID}"));
+                ReportMessage(string.Format($@"创建存储目录[{dir}]..."));
+                Directory.CreateDirectory(dir);
+            }
             foreach(Illustration illust in illustrations)
             {
                 int i = 0;
@@ -108,34 +120,18 @@ namespace PixivDownloader.Util
                             using(Stream reader = myResponse.GetResponseStream())
                             {
                                 string fileName = string.Format($@"{illust.ID}_p{i}_{illust.Name}_{illust.Date}{illust.FileFormat}");
-                                fileName = fileName.Replace('/', '／');
+                                fileName = FileTool.LegalizeFileName(fileName);
                                 string filePath = Path.Combine(dir, fileName);
                                 ReportMessage(string.Format($@"下载图片[{fileName}]..."));
-                                try
+                                using(FileStream writer = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
                                 {
-                                    using(FileStream writer = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
+                                    byte[] buff = new byte[512];
+                                    int c;
+                                    while(reader != null && (c = reader.Read(buff, 0, buff.Length)) > 0)
                                     {
-                                        byte[] buff = new byte[512];
-                                        int c;
-                                        while(reader != null && (c = reader.Read(buff, 0, buff.Length)) > 0)
-                                        {
-                                            writer.Write(buff, 0, c);
-                                        }
-                                        writer.Close();
+                                        writer.Write(buff, 0, c);
                                     }
-                                }
-                                catch(DirectoryNotFoundException)
-                                {
-                                    using(FileStream writer = new FileStream(Path.Combine(dir, string.Format($@"{illust.ID}_p{i}_文件名不规范_{illust.Date}{illust.FileFormat}")), FileMode.OpenOrCreate, FileAccess.Write))
-                                    {
-                                        byte[] buff = new byte[512];
-                                        int c;
-                                        while(reader != null && (c = reader.Read(buff, 0, buff.Length)) > 0)
-                                        {
-                                            writer.Write(buff, 0, c);
-                                        }
-                                        writer.Close();
-                                    }
+                                    writer.Close();
                                 }
                                 reader?.Close();
                             }
