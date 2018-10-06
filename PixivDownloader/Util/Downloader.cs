@@ -2,23 +2,26 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Text;
-using HtmlAgilityPack;
 using Neetsonic.Tool;
 using Neetsonic.Tool.Extensions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PixivDownloader.Model;
 
 namespace PixivDownloader.Util
 {
     public sealed class Downloader
     {
-        public Downloader(string illustrator_id, string saveDir, string proxy, Action<string> report, DateTime dateAfter)
+        public Downloader(string illustrator_id, string saveDir, string proxy, Action<string> report, DateTime dateAfter, bool downloadManga)
         {
             IllustratorID = illustrator_id;
             if(!string.IsNullOrWhiteSpace(proxy)) { ProxyObject = new WebProxy(proxy, true); }
             Report = report;
             DateAfter = dateAfter;
+            DownloadManga = downloadManga;
             SaveDir = saveDir;
             MenuURL = string.Format($@"https://www.pixiv.net/member_illust.php?id={illustrator_id}");
         }
@@ -29,62 +32,53 @@ namespace PixivDownloader.Util
         private readonly string SaveDir;
         private readonly Action<string> Report;
         private readonly DateTime DateAfter;
+        private readonly bool DownloadManga;
 
         public void Download()
         {
             ReportMessage(@"下载任务开始！");
             List<Illustration> illustrations = new List<Illustration>();
-            int page = 0;
-            HtmlNode haveNext;
             string illustrator = null;
-            do
+            ReportMessage(@"正在获取作品...");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format($@"https://www.pixiv.net/ajax/user/{IllustratorID}/profile/all"));
+            request.SetHeaderValue(@"authority", @"www.pixiv.net");
+            request.Method = "GET";
+            request.SetHeaderValue(@"path", string.Format($@"/ajax/user/{IllustratorID}/profile/all"));
+            request.SetHeaderValue(@"scheme", @"https");
+            request.Accept = @"application/json";
+            request.Headers.Add("accept-encoding", @"gzip, deflate, br");
+            request.Headers.Add("accept-language", @"zh-CN,zh;q=0.9,ja;q=0.8,en;q=0.7,zh-TW;q=0.6");
+            request.Headers.Add("Cookie", @"p_ab_id=7; p_ab_id_2=4; _ga=GA1.2.934273458.1521364658; PHPSESSID=20722713_cc96e4d3fce7f41fc42fd9668e1bb134; c_type=24; a_type=0; b_type=1; login_ever=yes; bookmark_tag_type=count; bookmark_tag_order=desc; module_orders_mypage=%5B%7B%22name%22%3A%22sketch_live%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22tag_follow%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22recommended_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22showcase%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22everyone_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22following_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22mypixiv_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22fanbox%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22featured_tags%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22contests%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22user_events%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22sensei_courses%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22spotlight%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22booth_follow_items%22%2C%22visible%22%3Atrue%7D%5D; __gads=ID=7e5541f83f2cab50:T=1527099175:S=ALNI_MbqpeLl8UPfDqpOUEqOuBZHo47CVw; first_visit_datetime_pc=2018-05-28+19%3A33%3A26; privacy_policy_agreement=0; GMOSSP_USER=iBAxEvQYugslXSID; __utmv=235335808.|2=login%20ever=yes=1^3=plan=premium=1^5=gender=male=1^6=user_id=20722713=1^9=p_ab_id=7=1^10=p_ab_id_2=4=1^11=lang=zh=1; ki_r=; ki_u=8801c14c-374f-c637-76ce-c8c2; __utmz=235335808.1535791793.73.31.utmcsr=saucenao.com|utmccn=(referral)|utmcmd=referral|utmcct=/search.php; auto_view_enabled=1; yuid_b=EkUFeFc; p_ab_d_id=1042682999; bookToggle=cloud; is_sensei_service_user=1; tags_sended=1; ki_s=189784%3A1.0.0.0.1%3B190555%3A0.0.0.0.0%3B191516%3A0.0.0.0.0; __utma=235335808.934273458.1521364658.1537973667.1538820366.78; limited_ads=%7B%22header%22%3A%22%22%2C%22responsive%22%3A%22%22%2C%22illust_responsive%22%3A%22%22%7D; tag_view_ranking=0xsDLqCEW6~RTJMXD26Ak~Ie2c51_4Sp~tgP8r-gOe_~iFcW6hPGPU~EGefOqA6KB~faHcYIP1U0~BU9SQkS-zU~y8GNntYHsi~qvqXJkzT2e~nRnn8VBmkN~KN7uxuR89w~5oPIfUbtd6~azESOjmQSV~ueeKYaEKwj~RcahSSzeRf~-_xRkJ5N3r~YRDwjaiLZn~_pwIgrV8TB~3gc3uGrU1V~AI_aJCDFn0~zyKU3Q5L4C~mLrrjwTHBm~d-u0duThlB~ZCmbgGhY5R~2-ldUidl2y~AMwBN_-Fo_~TmJBC3K3bw~xL8L4NxzvM~CiSfl_AE0h~udkRh_mjvd~1mFsW1xBBW~a3zvshTj4U~pnCQRVigpy~Lt-oEicbBr~q3eUobDMJW~NpsIVvS-GF~JN2fNJ_Ue2~zpxRZSQQmq~gooMLQqB9a~qDqmZnzmtE~pzzjRSV6ZO~ZTBAtZUDtQ~HY55MqmzzQ~TilVzXRalL~7X9tDmTHTN~E8zdna9OwN~WlKkwEuUi0~FH69TLSzdM~E2creqW-lX~HzBi0V_d0-~W8b5FozT7j~CwLGRJQEGQ~xZ6jtQjaj9~mzJgaDwBF5~ouiK2OKQ-A~_RfiUqtsxe~kRVrU5mTs2~Bd2L9ZBE8q~8d67oBa0hs~6s8EWwIFtr~UgLGWGysi-~G_f4j5NH8i~dxe3abx4rF~dqqWNpq7ul~fafuO7KcEk~XHvHN9WS_x~dGrh46_SR4~dKg5JtGqUU~QaiOjmwQnI~X_1kwTzaXt~VLb0kLlPK2~CrFcrMFJzz~gVfGX_rH_Y~LSG3qSZIDS~fg8EOt4owo~JxWMqWYB6S~GgKeUugbDA~bopfpc8En6~gpglyfLkWs~0F4QqxTayD~TWrozby2UO~w8ffkPoJ_S~E1yS6jImG-~CLR9k9dHAQ~Hjx7wJwsUT~89uzPVUy9U~52-15K-YXl~-V9Dhj6ijP~bUvbcXvcCG~L58xyNakWW~E6USWSAVMi~ZnmOm5LdC3~dCgGY2jML4~OxeWGr811U~j2Cs25NHKk~wgrA9w_7EX~D0nMcn6oGk~k6GrMC5bzc~WI561SX4pn; ki_t=1533556001787%3B1538820347134%3B1538825155853%3B6%3B23");
+            request.Referer = string.Format($@"https://www.pixiv.net/member.php?id={IllustratorID}");
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
+            if(null != ProxyObject) { request.Proxy = ProxyObject; }
+            List<string> illustIDs = new List<string>();
+            using(HttpWebResponse myResponse = (HttpWebResponse)request.GetResponse())
             {
-                bool skip = false;
-                page++;
-                ReportMessage(string.Format($@"正在获取第{page}页的作品..."));
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format($@"{MenuURL}&type=all&p={page}"));
-                request.Method = "GET";
-                request.Accept = @"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
-                request.Headers.Add("Accept-Encoding", @"gzip, deflate, br");
-                request.Headers.Add("Accept-Language", @"zh-CN,zh;q=0.9,ja;q=0.8,en;q=0.7,zh-TW;q=0.6");
-                request.Host = @"www.pixiv.net";
-                request.SetHeaderValue(@"Connection", @"keep-alive");
-                request.Referer = @"https://www.pixiv.net";
-                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
-                request.Headers.Add("Upgrade-Insecure-Requests", @"1");
-                request.Headers.Add("Cookie", @"first_visit_datetime_pc=2018-06-08+13%3A48%3A14; p_ab_id=5; p_ab_id_2=2; yuid=GQYEZzA58; __utma=235335808.657713264.1528433295.1528433295.1528433295.1; __utmc=235335808; __utmz=235335808.1528433295.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmt=1; limited_ads=%7B%22header%22%3A%22%22%7D; _ga=GA1.2.657713264.1528433295; _gid=GA1.2.890661813.1528433319; login_bc=1; PHPSESSID=20722713_06d5f16685a8652a2e6827803858424d; device_token=246818d8418f7e288ecafab2d3f6ae48; privacy_policy_agreement=1; c_type=24; a_type=0; b_type=1; login_ever=yes; __utmv=235335808.|2=login%20ever=yes=1^3=plan=premium=1^5=gender=male=1^6=user_id=20722713=1^9=p_ab_id=5=1^10=p_ab_id_2=2=1^11=lang=zh=1; __utmb=235335808.2.10.1528433295");
-                if(null != ProxyObject) { request.Proxy = ProxyObject; }
-                HtmlDocument doc = new HtmlDocument();
-                using(HttpWebResponse myResponse = (HttpWebResponse)request.GetResponse())
+                using(StreamReader reader = new StreamReader(new GZipStream(myResponse.GetResponseStream(), CompressionMode.Decompress), Encoding.UTF8))
                 {
-                    doc.Load(new GZipStream(myResponse.GetResponseStream(), CompressionMode.Decompress), Encoding.UTF8);
-                    myResponse.Close();
-                }
-                if(null == illustrator) { illustrator = doc.DocumentNode.SelectSingleNode(@"//*[@id='wrapper']/div[1]/div[2]/div/div[1]/div[1]/a[2]").InnerText; }
-                int count = doc.DocumentNode.SelectNodes(@"//*[@id='wrapper']/div[1]/div[1]/div/div[2]/ul/li").Count;
-                for(int i = 1; i <= count; i++)
-                {
-                    HtmlNode nodeName = doc.DocumentNode.SelectSingleNode(string.Format($@"//*[@id='wrapper']/div[1]/div[1]/div/div[2]/ul/li[{i}]/a[2]"));
-                    string href = nodeName.Attributes[@"href"].Value;
-                    string illust_id = href.Substring(href.LastIndexOf('=') + 1);
-                    string url = GetURL(illust_id);
-                    string date = GetDateByURL(url);
-                    if(DateTime.Parse(date).Date < DateAfter.Date)
+                    JObject illustratorInfo = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                    JObject illusts = illustratorInfo["body"].Value<JObject>("illusts");
+                    illustIDs.AddRange(illusts.Cast<KeyValuePair<string, JToken>>().Select(item => item.Key));
+                    if(DownloadManga)
                     {
-                        skip = true;
-                        break;
+                        JObject mangas = illustratorInfo["body"].Value<JObject>("manga");
+                        illustIDs.AddRange(mangas.Cast<KeyValuePair<string, JToken>>().Select(item => item.Key));
                     }
-                    illustrations.Add(new Illustration
-                    {
-                            ID = href.Substring(href.LastIndexOf('=') + 1),
-                            Name = nodeName.ChildNodes[0].InnerText,
-                            URL = url,
-                            Date = date.Replace(@"/", string.Empty)
-                    });
+                    reader.Close();
                 }
-                haveNext = skip ? null : doc.DocumentNode.SelectSingleNode(@"//*[@id='wrapper']/div[1]/div[1]/div/ul[1]/div/span[2]/a");
+                myResponse.Close();
             }
-            while(haveNext != null);
+            foreach(string illustID in illustIDs)
+            {
+                Illustration illust = GetIllustration(illustID);
+                if(illust.Date < DateAfter.Date)
+                {
+                    break;
+                }
+                if(null == illustrator) { illustrator = illust.Illustrator; }
+                illustrations.Add(illust);
+            }
             string dir = null;
             foreach(string directory in Directory.GetDirectories(SaveDir))
             {
@@ -119,7 +113,7 @@ namespace PixivDownloader.Util
                         {
                             using(Stream reader = myResponse.GetResponseStream())
                             {
-                                string fileName = string.Format($@"{illust.ID}_p{i}_{illust.Name}_{illust.Date}{illust.FileFormat}");
+                                string fileName = string.Format($@"{illust.ID}_p{i}_{illust.Name}_{illust.Date:yyyyMMdd}{illust.FileFormat}");
                                 fileName = FileTool.LegalizeFileName(fileName);
                                 string filePath = Path.Combine(dir, fileName);
                                 ReportMessage(string.Format($@"下载图片[{fileName}]..."));
@@ -144,36 +138,36 @@ namespace PixivDownloader.Util
             ReportMessage(@"下载任务完成！");
             FileTool.OpenDirectory(dir);
         }
-        private static string GetDateByURL(string url) => url.Substring(url.LastIndexOf(@"img", StringComparison.Ordinal) + 4, 10);
-        private string GetURL(string illust_id)
+        private Illustration GetIllustration(string illust_id)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format($@"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={illust_id}"));
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(string.Format($@"https://www.pixiv.net/ajax/illust/{illust_id}"));
+            request.SetHeaderValue(@"authority", @"www.pixiv.net");
             request.Method = "GET";
-            request.Accept = @"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
-            request.Headers.Add("Accept-Encoding", @"gzip, deflate, br");
-            request.Headers.Add("Accept-Language", @"zh-CN,zh;q=0.9,ja;q=0.8,en;q=0.7,zh-TW;q=0.6");
-            request.Host = @"www.pixiv.net";
-            request.SetHeaderValue(@"Connection", @"keep-alive");
-            request.Referer = MenuURL;
+            request.SetHeaderValue(@"path", string.Format($@"/ajax/illust/{illust_id}"));
+            request.SetHeaderValue(@"scheme", @"https");
+            request.Accept = @"application/json";
+            request.Headers.Add("accept-encoding", @"gzip, deflate, br");
+            request.Headers.Add("accept-language", @"zh-CN,zh;q=0.9,ja;q=0.8,en;q=0.7,zh-TW;q=0.6");
+            request.Headers.Add("Cookie", @"p_ab_id=7; p_ab_id_2=4; _ga=GA1.2.934273458.1521364658; PHPSESSID=20722713_cc96e4d3fce7f41fc42fd9668e1bb134; c_type=24; a_type=0; b_type=1; login_ever=yes; bookmark_tag_type=count; bookmark_tag_order=desc; module_orders_mypage=%5B%7B%22name%22%3A%22sketch_live%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22tag_follow%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22recommended_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22showcase%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22everyone_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22following_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22mypixiv_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22fanbox%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22featured_tags%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22contests%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22user_events%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22sensei_courses%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22spotlight%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22booth_follow_items%22%2C%22visible%22%3Atrue%7D%5D; __gads=ID=7e5541f83f2cab50:T=1527099175:S=ALNI_MbqpeLl8UPfDqpOUEqOuBZHo47CVw; first_visit_datetime_pc=2018-05-28+19%3A33%3A26; privacy_policy_agreement=0; GMOSSP_USER=iBAxEvQYugslXSID; __utmv=235335808.|2=login%20ever=yes=1^3=plan=premium=1^5=gender=male=1^6=user_id=20722713=1^9=p_ab_id=7=1^10=p_ab_id_2=4=1^11=lang=zh=1; ki_r=; ki_u=8801c14c-374f-c637-76ce-c8c2; __utmz=235335808.1535791793.73.31.utmcsr=saucenao.com|utmccn=(referral)|utmcmd=referral|utmcct=/search.php; auto_view_enabled=1; yuid_b=EkUFeFc; p_ab_d_id=1042682999; bookToggle=cloud; is_sensei_service_user=1; tags_sended=1; ki_s=189784%3A1.0.0.0.1%3B190555%3A0.0.0.0.0%3B191516%3A0.0.0.0.0; __utma=235335808.934273458.1521364658.1537973667.1538820366.78; ki_t=1533556001787%3B1538820347134%3B1538825155853%3B6%3B23; limited_ads=%7B%22header%22%3A%22%22%2C%22responsive%22%3A%22%22%2C%22illust_responsive%22%3A%226829%22%7D; tag_view_ranking=0xsDLqCEW6~RTJMXD26Ak~Ie2c51_4Sp~tgP8r-gOe_~iFcW6hPGPU~EGefOqA6KB~faHcYIP1U0~BU9SQkS-zU~nRnn8VBmkN~qvqXJkzT2e~y8GNntYHsi~5oPIfUbtd6~KN7uxuR89w~azESOjmQSV~YRDwjaiLZn~RcahSSzeRf~_pwIgrV8TB~AI_aJCDFn0~mLrrjwTHBm~3gc3uGrU1V~ueeKYaEKwj~zyKU3Q5L4C~Lt-oEicbBr~udkRh_mjvd~q3eUobDMJW~AMwBN_-Fo_~d-u0duThlB~pnCQRVigpy~a3zvshTj4U~1mFsW1xBBW~xL8L4NxzvM~TmJBC3K3bw~-_xRkJ5N3r~CiSfl_AE0h~2-ldUidl2y~ZCmbgGhY5R~gooMLQqB9a~E8zdna9OwN~CwLGRJQEGQ~qDqmZnzmtE~zpxRZSQQmq~7X9tDmTHTN~uukX-mN8J7~NpsIVvS-GF~78lv_o5xOl~TilVzXRalL~JN2fNJ_Ue2~ZTBAtZUDtQ~FH69TLSzdM~HzBi0V_d0-~E2creqW-lX~WlKkwEuUi0~pzzjRSV6ZO~W8b5FozT7j~SuVYClquvg~QaiOjmwQnI~gpglyfLkWs~kRVrU5mTs2~E1yS6jImG-~bopfpc8En6~LSG3qSZIDS~JxWMqWYB6S~X_1kwTzaXt~ouiK2OKQ-A~mzJgaDwBF5~dqqWNpq7ul~UgLGWGysi-~6s8EWwIFtr~8d67oBa0hs~0F4QqxTayD~52-15K-YXl~CLR9k9dHAQ~gVfGX_rH_Y~Hjx7wJwsUT~XHvHN9WS_x~HY55MqmzzQ~fafuO7KcEk~dxe3abx4rF~G_f4j5NH8i~Bd2L9ZBE8q~_RfiUqtsxe~TWrozby2UO~GgKeUugbDA~xZ6jtQjaj9~89uzPVUy9U~w8ffkPoJ_S~fg8EOt4owo~VLb0kLlPK2~CrFcrMFJzz~dKg5JtGqUU~dGrh46_SR4~pYlUxeIoeg~n2tofz1Xl7~dCgGY2jML4~K8esoIs2eW~OxeWGr811U~u8McsBs7WV~j2Cs25NHKk~SqrPRxU2RZ~wgrA9w_7EX");
+            request.Referer = string.Format($@"https://www.pixiv.net/member_illust.php?mode=medium&illust_id={illust_id}");
             request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
-            request.Headers.Add("Upgrade-Insecure-Requests", @"1");
-            request.Headers.Add("Cache-Control", @"max-age=0");
-            request.Headers.Add("Cookie", @"first_visit_datetime_pc=2018-06-08+13%3A48%3A14; p_ab_id=5; p_ab_id_2=2; yuid=GQYEZzA58; __utmc=235335808; __utmz=235335808.1528433295.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); limited_ads=%7B%22header%22%3A%22%22%7D; _ga=GA1.2.657713264.1528433295; _gid=GA1.2.890661813.1528433319; login_bc=1; PHPSESSID=20722713_06d5f16685a8652a2e6827803858424d; device_token=246818d8418f7e288ecafab2d3f6ae48; privacy_policy_agreement=1; c_type=24; a_type=0; b_type=1; login_ever=yes; OX_plg=swf|sl|wmp|shk|pm; __utma=235335808.657713264.1528433295.1528441113.1528443138.4; GMOSSP_USER=LxIdoplcRqyfLP96; module_orders_mypage=%5B%7B%22name%22%3A%22sketch_live%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22tag_follow%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22recommended_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22showcase%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22everyone_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22following_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22mypixiv_new_illusts%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22fanbox%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22featured_tags%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22contests%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22user_events%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22sensei_courses%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22spotlight%22%2C%22visible%22%3Atrue%7D%2C%7B%22name%22%3A%22booth_follow_items%22%2C%22visible%22%3Atrue%7D%5D; is_sensei_service_user=1; __utmv=235335808.|2=login%20ever=yes=1^3=plan=premium=1^5=gender=male=1^6=user_id=20722713=1^9=p_ab_id=5=1^10=p_ab_id_2=2=1^11=lang=zh=1; __gads=ID=aab55b03e6d876e3:T=1528447041:S=ALNI_MYqFjBSkXKUvVBd9kkePwgCzSZTRg; __utmt=1; __utmb=235335808.39.9.1528447071900; tag_view_ranking=I8PKmJXPGb~RTJMXD26Ak~LtW-gO6CmS~4dxKmeew3P~a-yCMcqYxL~aO5pLrFNOB~4uaq8PBs7U~RFVdOq-YjA~Js5EBY4gOW~Ms9Iyj7TRt~Z9VMjBRtsS~YLmVA5rwXe~BU9SQkS-zU~zCtkCvzrOi~EGefOqA6KB~Ow9mLSvmxK~hQzD2l5xLh~4-_9de7LBH~iFcW6hPGPU~PGv6mTCThy~NCZvWchGEm~edXUchbQp5~iajmMoolkv~c8UxuNkgG6~8HRshblb4Q~tgP8r-gOe_~OUkihvwBMZ~cpt_Nk5mjc~lRxin4V3-v~HowAxXvXGp~7tRe7oIUrM~kSnbadY9nM~6gkYqC1mvr~KaIFU4VLba");
             if(null != ProxyObject) { request.Proxy = ProxyObject; }
-            HtmlDocument doc = new HtmlDocument();
+            Illustration illustration = new Illustration();
             using(HttpWebResponse myResponse = (HttpWebResponse)request.GetResponse())
             {
-                doc.Load(new GZipStream(myResponse.GetResponseStream(), CompressionMode.Decompress), Encoding.UTF8);
+                using(StreamReader reader = new StreamReader(new GZipStream(myResponse.GetResponseStream(), CompressionMode.Decompress), Encoding.UTF8))
+                {
+                    JObject illustInfo = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                    illustration.Name = illustInfo["body"].Value<string>("illustTitle");
+                    illustration.Date = illustInfo["body"].Value<DateTime>("uploadDate");
+                    illustration.ID = illust_id;
+                    illustration.URL = illustInfo["body"]["urls"].Value<string>("original");
+                    illustration.Illustrator = illustInfo["body"].Value<string>("userName");
+                    reader.Close();
+                }
                 myResponse.Close();
             }
-            int begin = doc.ParsedText.IndexOf(@"original", StringComparison.Ordinal);
-            int end = doc.ParsedText.IndexOf(@"}", begin, StringComparison.Ordinal);
-            string raw = doc.ParsedText.Substring(begin, end - begin + 1);
-            begin = raw.IndexOf(@"https", StringComparison.Ordinal);
-            end = raw.LastIndexOf('"');
-            string ret = raw.Substring(begin, end - begin);
-            ret = ret.Replace(@"\", string.Empty);
-            return ret;
+            return illustration;
         }
         private void ReportMessage(string msg) => Report?.Invoke(msg);
     }

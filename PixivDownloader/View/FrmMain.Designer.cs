@@ -33,12 +33,13 @@
             System.Windows.Forms.Label label3;
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnStart = new System.Windows.Forms.Button();
+            this.chkDateAfter = new System.Windows.Forms.CheckBox();
+            this.dateAfter = new System.Windows.Forms.DateTimePicker();
             this.txtProxy = new Neetsonic.Control.TextBox();
             this.txtLog = new Neetsonic.Control.LogTextBox();
             this.txtSaveDir = new Neetsonic.Control.TextBox();
             this.txtIllustratorID = new Neetsonic.Control.TextBox();
-            this.chkDateAfter = new System.Windows.Forms.CheckBox();
-            this.dateAfter = new System.Windows.Forms.DateTimePicker();
+            this.chkManga = new System.Windows.Forms.CheckBox();
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
@@ -91,11 +92,31 @@
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.BtnStart_Click);
             // 
+            // chkDateAfter
+            // 
+            this.chkDateAfter.AutoSize = true;
+            this.chkDateAfter.Location = new System.Drawing.Point(16, 117);
+            this.chkDateAfter.Name = "chkDateAfter";
+            this.chkDateAfter.Size = new System.Drawing.Size(210, 24);
+            this.chkDateAfter.TabIndex = 9;
+            this.chkDateAfter.Text = "仅下载此时间之后上传的作品";
+            this.chkDateAfter.UseVisualStyleBackColor = true;
+            this.chkDateAfter.CheckedChanged += new System.EventHandler(this.ChkDateAfter_CheckedChanged);
+            // 
+            // dateAfter
+            // 
+            this.dateAfter.Enabled = false;
+            this.dateAfter.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dateAfter.Location = new System.Drawing.Point(240, 115);
+            this.dateAfter.Name = "dateAfter";
+            this.dateAfter.Size = new System.Drawing.Size(130, 26);
+            this.dateAfter.TabIndex = 10;
+            // 
             // txtProxy
             // 
             this.txtProxy.Location = new System.Drawing.Point(83, 46);
             this.txtProxy.Name = "txtProxy";
-            this.txtProxy.Size = new System.Drawing.Size(287, 26);
+            this.txtProxy.Size = new System.Drawing.Size(138, 26);
             this.txtProxy.TabIndex = 8;
             this.txtProxy.TextChanged += new System.EventHandler(this.TxtProxy_TextChanged);
             // 
@@ -125,31 +146,24 @@
             this.txtIllustratorID.Size = new System.Drawing.Size(138, 26);
             this.txtIllustratorID.TabIndex = 0;
             // 
-            // chkDateAfter
+            // chkManga
             // 
-            this.chkDateAfter.AutoSize = true;
-            this.chkDateAfter.Location = new System.Drawing.Point(16, 117);
-            this.chkDateAfter.Name = "chkDateAfter";
-            this.chkDateAfter.Size = new System.Drawing.Size(210, 24);
-            this.chkDateAfter.TabIndex = 9;
-            this.chkDateAfter.Text = "仅下载此时间之后上传的作品";
-            this.chkDateAfter.UseVisualStyleBackColor = true;
-            this.chkDateAfter.CheckedChanged += new System.EventHandler(this.ChkDateAfter_CheckedChanged);
-            // 
-            // dateAfter
-            // 
-            this.dateAfter.Enabled = false;
-            this.dateAfter.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateAfter.Location = new System.Drawing.Point(240, 115);
-            this.dateAfter.Name = "dateAfter";
-            this.dateAfter.Size = new System.Drawing.Size(130, 26);
-            this.dateAfter.TabIndex = 10;
+            this.chkManga.AutoSize = true;
+            this.chkManga.Checked = true;
+            this.chkManga.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkManga.Location = new System.Drawing.Point(240, 45);
+            this.chkManga.Name = "chkManga";
+            this.chkManga.Size = new System.Drawing.Size(84, 24);
+            this.chkManga.TabIndex = 11;
+            this.chkManga.Text = "下载漫画";
+            this.chkManga.UseVisualStyleBackColor = true;
             // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(384, 395);
+            this.Controls.Add(this.chkManga);
             this.Controls.Add(this.dateAfter);
             this.Controls.Add(this.chkDateAfter);
             this.Controls.Add(this.txtProxy);
@@ -184,6 +198,7 @@
         private Neetsonic.Control.TextBox txtProxy;
         private System.Windows.Forms.CheckBox chkDateAfter;
         private System.Windows.Forms.DateTimePicker dateAfter;
+        private System.Windows.Forms.CheckBox chkManga;
     }
 }
 
