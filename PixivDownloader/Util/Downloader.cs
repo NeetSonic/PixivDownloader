@@ -97,6 +97,7 @@ namespace PixivDownloader.Util
                 if(directory.EndsWith($@"_{IllustratorID}"))
                 {
                     dir = directory;
+                    ReportMessage(string.Format($@"定位到存储目录[{dir}]..."));
                     break;
                 }
             }
