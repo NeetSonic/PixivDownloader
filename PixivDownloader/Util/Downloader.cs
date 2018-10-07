@@ -53,6 +53,7 @@ namespace PixivDownloader.Util
             request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
             if(null != ProxyObject) { request.Proxy = ProxyObject; }
             List<string> illustIDs = new List<string>();
+            List<string> mangaIDs = new List<string>();
             using(HttpWebResponse myResponse = (HttpWebResponse)request.GetResponse())
             {
                 using(StreamReader reader = new StreamReader(new GZipStream(myResponse.GetResponseStream(), CompressionMode.Decompress), Encoding.UTF8))
@@ -63,7 +64,7 @@ namespace PixivDownloader.Util
                     if(DownloadManga)
                     {
                         JObject mangas = illustratorInfo["body"].Value<JObject>("manga");
-                        illustIDs.AddRange(mangas.Cast<KeyValuePair<string, JToken>>().Select(item => item.Key));
+                        mangaIDs.AddRange(mangas.Cast<KeyValuePair<string, JToken>>().Select(item => item.Key));
                     }
                     reader.Close();
                 }
@@ -78,6 +79,17 @@ namespace PixivDownloader.Util
                 }
                 if(null == illustrator) { illustrator = illust.Illustrator; }
                 illustrations.Add(illust);
+            }
+            foreach(string mangaID in mangaIDs)
+            {
+                Illustration manga = GetIllustration(mangaID);
+                if(manga.Date < DateAfter.Date)
+                {
+                    break;
+                }
+                if(null == illustrator)
+                { illustrator = manga.Illustrator; }
+                illustrations.Add(manga);
             }
             string dir = null;
             foreach(string directory in Directory.GetDirectories(SaveDir))
