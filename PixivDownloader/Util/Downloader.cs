@@ -58,10 +58,11 @@ namespace PixivDownloader.Util
             {
                 using(StreamReader reader = new StreamReader(new GZipStream(myResponse.GetResponseStream(), CompressionMode.Decompress), Encoding.UTF8))
                 {
-                    JObject illustratorInfo = JsonConvert.DeserializeObject<JObject>(reader.ReadToEnd());
+                    string json = reader.ReadToEnd();
+                    JObject illustratorInfo = JsonConvert.DeserializeObject<JObject>(json);
                     JObject illusts = illustratorInfo["body"].Value<JObject>("illusts");
                     illustIDs.AddRange(illusts.Cast<KeyValuePair<string, JToken>>().Select(item => item.Key));
-                    if(DownloadManga)
+                    if(DownloadManga && illustratorInfo["body"]["manga"].HasValues)
                     {
                         JObject mangas = illustratorInfo["body"].Value<JObject>("manga");
                         mangaIDs.AddRange(mangas.Cast<KeyValuePair<string, JToken>>().Select(item => item.Key));
