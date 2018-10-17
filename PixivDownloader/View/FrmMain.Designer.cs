@@ -40,6 +40,7 @@
             this.txtSaveDir = new Neetsonic.Control.TextBox();
             this.txtIllustratorID = new Neetsonic.Control.TextBox();
             this.chkManga = new System.Windows.Forms.CheckBox();
+            this.chkSkipExists = new System.Windows.Forms.CheckBox();
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
@@ -116,7 +117,7 @@
             // 
             this.txtProxy.Location = new System.Drawing.Point(83, 46);
             this.txtProxy.Name = "txtProxy";
-            this.txtProxy.Size = new System.Drawing.Size(138, 26);
+            this.txtProxy.Size = new System.Drawing.Size(220, 26);
             this.txtProxy.TabIndex = 8;
             this.txtProxy.TextChanged += new System.EventHandler(this.TxtProxy_TextChanged);
             // 
@@ -151,18 +152,31 @@
             this.chkManga.AutoSize = true;
             this.chkManga.Checked = true;
             this.chkManga.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkManga.Location = new System.Drawing.Point(240, 45);
+            this.chkManga.Location = new System.Drawing.Point(16, 392);
             this.chkManga.Name = "chkManga";
             this.chkManga.Size = new System.Drawing.Size(84, 24);
             this.chkManga.TabIndex = 11;
             this.chkManga.Text = "下载漫画";
             this.chkManga.UseVisualStyleBackColor = true;
             // 
+            // chkSkipExists
+            // 
+            this.chkSkipExists.AutoSize = true;
+            this.chkSkipExists.Checked = true;
+            this.chkSkipExists.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkSkipExists.Location = new System.Drawing.Point(106, 392);
+            this.chkSkipExists.Name = "chkSkipExists";
+            this.chkSkipExists.Size = new System.Drawing.Size(140, 24);
+            this.chkSkipExists.TabIndex = 12;
+            this.chkSkipExists.Text = "跳过已经下载过的";
+            this.chkSkipExists.UseVisualStyleBackColor = true;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 395);
+            this.ClientSize = new System.Drawing.Size(384, 423);
+            this.Controls.Add(this.chkSkipExists);
             this.Controls.Add(this.chkManga);
             this.Controls.Add(this.dateAfter);
             this.Controls.Add(this.chkDateAfter);
@@ -199,6 +213,7 @@
         private System.Windows.Forms.CheckBox chkDateAfter;
         private System.Windows.Forms.DateTimePicker dateAfter;
         private System.Windows.Forms.CheckBox chkManga;
+        private System.Windows.Forms.CheckBox chkSkipExists;
     }
 }
 

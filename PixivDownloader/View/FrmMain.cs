@@ -28,7 +28,7 @@ namespace PixivDownloader.View
         {
             txtLog.Clear();
             txtIllustratorID.Enabled = txtSaveDir.Enabled = btnBrowse.Enabled = btnStart.Enabled = txtProxy.Enabled = false;
-            Downloader downloader = new Downloader(txtIllustratorID.Text, txtSaveDir.Text, txtProxy.Text, Log, chkDateAfter.Checked ? dateAfter.Value : DateTime.MinValue, chkManga.Checked);
+            Downloader downloader = new Downloader(txtIllustratorID.Text, txtSaveDir.Text, txtProxy.Text, Log, chkDateAfter.Checked ? dateAfter.Value : DateTime.MinValue, chkManga.Checked, chkSkipExists.Checked);
             await Task.Run((Action)downloader.Download);
             txtIllustratorID.Enabled = txtSaveDir.Enabled = btnBrowse.Enabled = btnStart.Enabled = txtProxy.Enabled = true;
         }
