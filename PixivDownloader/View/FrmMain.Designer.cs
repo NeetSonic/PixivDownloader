@@ -41,6 +41,10 @@
             this.txtIllustratorID = new Neetsonic.Control.TextBox();
             this.chkManga = new System.Windows.Forms.CheckBox();
             this.chkSkipExists = new System.Windows.Forms.CheckBox();
+            this.lblProgress = new System.Windows.Forms.Label();
+            this.txtMulti = new Neetsonic.Control.TextBox();
+            this.chkMulti = new System.Windows.Forms.CheckBox();
+            this.chkUpdate = new System.Windows.Forms.CheckBox();
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             label3 = new System.Windows.Forms.Label();
@@ -85,9 +89,9 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(240, 77);
+            this.btnStart.Location = new System.Drawing.Point(240, 79);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(130, 29);
+            this.btnStart.Size = new System.Drawing.Size(130, 59);
             this.btnStart.TabIndex = 5;
             this.btnStart.Text = "开始下载";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -96,7 +100,7 @@
             // chkDateAfter
             // 
             this.chkDateAfter.AutoSize = true;
-            this.chkDateAfter.Location = new System.Drawing.Point(16, 117);
+            this.chkDateAfter.Location = new System.Drawing.Point(16, 146);
             this.chkDateAfter.Name = "chkDateAfter";
             this.chkDateAfter.Size = new System.Drawing.Size(210, 24);
             this.chkDateAfter.TabIndex = 9;
@@ -108,7 +112,7 @@
             // 
             this.dateAfter.Enabled = false;
             this.dateAfter.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateAfter.Location = new System.Drawing.Point(240, 115);
+            this.dateAfter.Location = new System.Drawing.Point(240, 144);
             this.dateAfter.Name = "dateAfter";
             this.dateAfter.Size = new System.Drawing.Size(130, 26);
             this.dateAfter.TabIndex = 10;
@@ -125,7 +129,7 @@
             // 
             this.txtLog.AcceptsReturn = true;
             this.txtLog.AcceptsTab = true;
-            this.txtLog.Location = new System.Drawing.Point(16, 147);
+            this.txtLog.Location = new System.Drawing.Point(16, 176);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Both;
@@ -152,7 +156,7 @@
             this.chkManga.AutoSize = true;
             this.chkManga.Checked = true;
             this.chkManga.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkManga.Location = new System.Drawing.Point(16, 392);
+            this.chkManga.Location = new System.Drawing.Point(16, 421);
             this.chkManga.Name = "chkManga";
             this.chkManga.Size = new System.Drawing.Size(84, 24);
             this.chkManga.TabIndex = 11;
@@ -164,18 +168,58 @@
             this.chkSkipExists.AutoSize = true;
             this.chkSkipExists.Checked = true;
             this.chkSkipExists.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkSkipExists.Location = new System.Drawing.Point(106, 392);
+            this.chkSkipExists.Location = new System.Drawing.Point(106, 421);
             this.chkSkipExists.Name = "chkSkipExists";
             this.chkSkipExists.Size = new System.Drawing.Size(140, 24);
             this.chkSkipExists.TabIndex = 12;
             this.chkSkipExists.Text = "跳过已经下载过的";
             this.chkSkipExists.UseVisualStyleBackColor = true;
             // 
+            // lblProgress
+            // 
+            this.lblProgress.AutoSize = true;
+            this.lblProgress.Location = new System.Drawing.Point(252, 422);
+            this.lblProgress.Name = "lblProgress";
+            this.lblProgress.Size = new System.Drawing.Size(0, 20);
+            this.lblProgress.TabIndex = 13;
+            // 
+            // txtMulti
+            // 
+            this.txtMulti.Location = new System.Drawing.Point(83, 112);
+            this.txtMulti.Name = "txtMulti";
+            this.txtMulti.Size = new System.Drawing.Size(138, 26);
+            this.txtMulti.TabIndex = 14;
+            // 
+            // chkMulti
+            // 
+            this.chkMulti.AutoSize = true;
+            this.chkMulti.Location = new System.Drawing.Point(21, 114);
+            this.chkMulti.Name = "chkMulti";
+            this.chkMulti.Size = new System.Drawing.Size(56, 24);
+            this.chkMulti.TabIndex = 15;
+            this.chkMulti.Text = "批量";
+            this.chkMulti.UseVisualStyleBackColor = true;
+            this.chkMulti.CheckedChanged += new System.EventHandler(this.ChkMulti_CheckedChanged);
+            // 
+            // chkUpdate
+            // 
+            this.chkUpdate.AutoSize = true;
+            this.chkUpdate.Location = new System.Drawing.Point(309, 48);
+            this.chkUpdate.Name = "chkUpdate";
+            this.chkUpdate.Size = new System.Drawing.Size(70, 24);
+            this.chkUpdate.TabIndex = 16;
+            this.chkUpdate.Text = "仅更新";
+            this.chkUpdate.UseVisualStyleBackColor = true;
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 423);
+            this.ClientSize = new System.Drawing.Size(384, 452);
+            this.Controls.Add(this.chkUpdate);
+            this.Controls.Add(this.chkMulti);
+            this.Controls.Add(this.txtMulti);
+            this.Controls.Add(this.lblProgress);
             this.Controls.Add(this.chkSkipExists);
             this.Controls.Add(this.chkManga);
             this.Controls.Add(this.dateAfter);
@@ -214,6 +258,10 @@
         private System.Windows.Forms.DateTimePicker dateAfter;
         private System.Windows.Forms.CheckBox chkManga;
         private System.Windows.Forms.CheckBox chkSkipExists;
+        private System.Windows.Forms.Label lblProgress;
+        private Neetsonic.Control.TextBox txtMulti;
+        private System.Windows.Forms.CheckBox chkMulti;
+        private System.Windows.Forms.CheckBox chkUpdate;
     }
 }
 
